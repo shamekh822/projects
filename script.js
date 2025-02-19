@@ -1,5 +1,5 @@
 const username = 'shamekh822';
-const maxPages = 3;
+const maxPages = 1;
 const hideForks = true;
 const repoList = document.querySelector('.repo-list');
 const reposSection = document.querySelector('.repos');
@@ -24,26 +24,26 @@ getProfile();
 // display information from github profile
 const displayProfile = (profile) => {
     const userInfo = document.querySelector('.user-info');
+
+    // Handle null values and remove empty fields
+    const name = profile.name ? profile.name : profile.login;
+    const bio = profile.bio && profile.bio !== "null" ? `<p>${profile.bio}</p>` : "";
+
     userInfo.innerHTML = `
         <figure>
-            <img alt="user avatar" src=${profile.avatar_url} />
+            <img alt="user avatar" src="${profile.avatar_url}" />
         </figure>
         <div>
-            <h2><a href=${profile.blog}><strong>${profile.name} - ${profile.login}</strong></a></h2>
-            <p>${profile.bio}</p>
+            <h2><a href="${profile.blog}"><strong>${name} - ${profile.login}</strong></a></h2>
+            ${bio}
             <p>
-                Followers: <strong>${profile.followers}</strong>
-                Repos: <strong>${profile.public_repos}</strong>
-                Gists: <strong>${profile.public_gists}</strong>
-            </p>
-            <p>
-                Work: ${profile.company}
-                Location: ${profile.location}
+                <strong>Followers:</strong> ${profile.followers} &nbsp; 
+                <strong>Repos:</strong> ${profile.public_repos} &nbsp; 
+                <strong>Gists:</strong> ${profile.public_gists}
             </p>
         </div>
     `;
 };
-
 // get list of user's public repos
 const getRepos = async () => {
     let repos = [];
@@ -69,13 +69,28 @@ const getRepos = async () => {
 getRepos();
 
 // display list of all user's public repos
+// Define the repositories you want to show
+const allowedRepos = [
+    "GAN-Image-Synthesis",
+    "Word-embeddings",
+    "Electricity-Billing",
+    "SastaGPT",
+    "MERN-Trading-App",
+];
 const displayRepos = (repos) => {
+    console.log("All repos fetched:", repos.map(r => r.name)); // Debugging
+    console.log("Allowed repos:", allowedRepos); // Debugging
+
     const userHome = `https://github.com/${username}`;
     filterInput.classList.remove('hide');
+
     for (const repo of repos) {
-        if (repo.fork && hideForks) {
-            continue;
+        if (!allowedRepos.includes(repo.name.trim())) {
+            console.log(`Skipping: ${repo.name}`); // Debugging: See which repos are skipped
+            continue; // Skip this repo if it's not in the allowed list
         }
+
+        console.log(`Showing: ${repo.name}`); // Debugging: See which repos are displayed
 
         const langUrl = `${userHome}?tab=repositories&q=&language=${repo.language}`;
         const starsUrl = `${userHome}/${repo.name}/stargazers`;
@@ -117,22 +132,6 @@ const displayRepos = (repos) => {
         repoList.append(listItem);
     }
 };
-
-// dynamic search
-filterInput.addEventListener('input', (e) => {
-    const search = e.target.value;
-    const repos = document.querySelectorAll('.repo');
-    const searchLowerText = search.toLowerCase();
-
-    for (const repo of repos) {
-        const lowerText = repo.innerText.toLowerCase();
-        if (lowerText.includes(searchLowerText)) {
-            repo.classList.remove('hide');
-        } else {
-            repo.classList.add('hide');
-        }
-    }
-});
 
 // for programming language icons
 const devicons = {
